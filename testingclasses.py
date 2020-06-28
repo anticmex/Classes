@@ -1,11 +1,11 @@
 # Реализуем классы животных для фермы
-from turtle import position
 
 
-def sexchecked(sex):
-    # функция для проверки падежей
-    if sex == 'female':
-        return 'a'
+# def sexchecked(sex):
+#     # функция для проверки падежей
+#     if sex == 'female':
+#         return 'a'
+
 
 
 class Animals:
@@ -56,14 +56,16 @@ class AnimalsAction(Animals):
                 or self.animal_type.lower() == 'утка':
 
             if self.weight > 0.3:
-                print(f'\n{self.name} снесл{sexchecked(self.sex)} для Вас яйцо!')
+                if self.sex == 'female':
+                    print(f'\n{self.name} снесла для Вас яйцо!')
+                else:
+                    print(f'\n{self.animal_type.title()} по кличке "{self.name}" успешно ощипан!')
                 change_weight = 30
-                print(f"Кажется {self.name} слегка похудел{sexchecked(self.sex)}.. где-то на {change_weight} грамм.")
+                print(f"Кажется вес животного уменьшился.. где-то на {change_weight} грамм.")
                 self.weight -= change_weight / 100
                 return f'{self.sound}\n'
             else:
-                print(f'\nСрочно покормите бедняжку {self.name}!')
-                return f'Она уже легче воздуха!\n'
+                return f'\nСрочно покормите бедняжку {self.name}!\n'
 
         elif self.animal_type.lower() == 'корова' or self.animal_type.lower() == 'коза':
             print(f'\nВы подоили {"".join(list(self.animal_type[:-1])) + "у"} {self.name}!')
@@ -144,7 +146,7 @@ farm_animal = {1: [GrayGoose, WhiteGoose],
                5: [FirstGoat, SecondGoat],
                6: [OneDuck]}
 
-print(len(farm_animal[2]))
+
 
 
 class UserAction:
@@ -174,12 +176,43 @@ class UserAction:
                 f'{self.anim_value1.name}.')
 
     def __section_view__(self):
-        # if int(self.user_command) == 1:
         print(f'\nПеред Вами секция фермы №{self.user_command}.')
         if len(farm_animal[int(self.user_command)]) > 1:
             print(UserAction.__twoanimal__(self))
         else:
             print(UserAction.__oneanimal__(self))
+
+    def __animallook__(self):
+        command = input(f'Выберете действие:\n'
+                          f'[1] - подойти к {self.anim_value0.name}\n'
+                          f'[2] - подойти к {self.anim_value1.name}\n'
+                          f'[3] - вернуться назад. ')
+        if bool(command) != False and command != '3':
+            if command == '1':
+                animal = self.anim_value0
+            elif command == '2':
+                animal = self.anim_value1
+
+            print(f'\nПеред Вами {animal.animal_type} по кличке {animal.name}')
+            print(f'Вы слышите типичный звук "{animal.sound}"')
+            UserAction.__animalaction__(self, animal)
+
+    def __animalaction__(self, animal):
+        command = input(f'Выберете действие:\n'
+                         f'[1] - Покормить {animal.name}\n'
+                         f'[2] - Поработать с {animal.name}\n'
+                         f'[3] - вернуться назад. ')
+        if command == '1':
+           animal.feed(input('Напишите чем Вы хотите покормить животное? '))
+        elif command == '2':
+            animal.interact()
+
+        UserAction.__animallook__(self)
+
+
+    def __interactinsection__(self):
+        if len(farm_animal[int(self.user_command)]) > 1:
+            UserAction.__animallook__(self)
 
     def action(self):
         if int(self.user_command) in farm_animal.keys():
@@ -187,29 +220,33 @@ class UserAction:
         else:
             UserAction.position = 'ферма'
         UserAction.__section_view__(self)
-
+        UserAction.__interactinsection__(self)
 
 def main():
-    print('Добро пожаловать на ферму Дядюшки Джо!')
-    print('Сейчас на ферме есть следующие животные:')
-    for key, val in farm_animal.items():
-        if len(val) > 1:
-            print(f'{key}: {val[0].animal_type} - {val[0].name} и {val[1].animal_type} - {val[1].name}')
-        else:
-            print(f'{key}: {val[0].animal_type} - {val[0].name}')
-
-    command = input('Выберете секцию к которой хотели бы подойти поближе: ')
-    while bool(command) == False or not command.isdigit() or not int(command) in list(farm_animal.keys()):
-        if bool(command) == False:
-            print('\nВы не выбрали ни одной секции!')
-        elif not command.isdigit():
-            print('\nВы указали буквы вместа номера секции!')
-        else:
-            print('\nВ настоящий момент данная секция не открыта. Выберети другую.')
+    while True:
+        print('Добро пожаловать на ферму Дядюшки Джо!')
+        print('Сейчас на ферме есть следующие животные:')
+        for key, val in farm_animal.items():
+            if len(val) > 1:
+                print(f'{key}: {val[0].animal_type} - {val[0].name} и {val[1].animal_type} - {val[1].name}')
+            else:
+                print(f'{key}: {val[0].animal_type} - {val[0].name}')
+        print('Напечатайте "q" для выхода из программы.')
         command = input('Выберете секцию к которой хотели бы подойти поближе: ')
+        if command.lower() == 'q' or command.lower() == 'й':
+            break
 
-    # UserAction(command).action()
-    # print(UserAction.position)
+        while bool(command) == False or not command.isdigit() or not int(command) in list(farm_animal.keys()):
+            if bool(command) == False:
+                print('\nВы не выбрали ни одной секции!')
+            elif not command.isdigit():
+                print('\nВы указали буквы вместа номера секции!')
+            else:
+                print('\nВ настоящий момент данная секция не открыта. Выберети другую.')
+            command = input('Выберете секцию к которой хотели бы подойти поближе: ')
+
+        UserAction(command).action()
+        print(UserAction.position)
 
 
 main()
@@ -220,7 +257,7 @@ main()
 # print(WhiteGoose.feed('трава'))
 # print(WhiteGoose.weight)
 # print(FirstGoat.feed('капуста'))
-# print(FirstSheep.interact())
-
+# print(GrayGoose.interact())
+# print(farm_animal[1][0].sex)
 # print(f'Вес всех животных {Animals.weight_count}!')
 # print(f'Самое тяжелое животное - {Animals.max_weight_animal_type} {Animals.max_weight_name} весит {Animals.max_weight}!')
