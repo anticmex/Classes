@@ -1,13 +1,5 @@
 # Реализуем классы животных для фермы
 
-
-# def sexchecked(sex):
-#     # функция для проверки падежей
-#     if sex == 'female':
-#         return 'a'
-
-
-
 class Animals:
     """ базовый класс животных    """
     name = ''  # кличка животного
@@ -44,13 +36,20 @@ class AnimalsAction(Animals):
         # функция кормления животного. животное набирает вес, если еда ему нравится.
         if self.feed_type.lower() == feed_type.lower():
             print(f"{feed_type.title()} - Превосходный корм для {self.name}!")
+            Animals.weight_count -= self.weight
             self.weight += float(self.weight * 10 / 100)
+            Animals.weight_count += self.weight
+            if self.weight > Animals.max_weight:
+                Animals.max_weight = self.weight
+                Animals.max_weight_name = self.name
+                Animals.max_weight_animal_type = self.animal_type
         else:
             print(f"{self.name} не очень распробовал Ваш {feed_type}..")
         return f'{self.sound}\n'
 
     def interact(self):
         # отдельная функция для взаимодействия с животными в зависимости от их типа
+        Animals.weight_count -= self.weight
         if self.animal_type.lower() == 'гусь' \
                 or self.animal_type.lower() == 'курица' \
                 or self.animal_type.lower() == 'утка':
@@ -63,21 +62,19 @@ class AnimalsAction(Animals):
                 change_weight = 30
                 print(f"Кажется вес животного уменьшился.. где-то на {change_weight} грамм.")
                 self.weight -= change_weight / 100
-                return f'{self.sound}\n'
             else:
                 return f'\nСрочно покормите бедняжку {self.name}!\n'
-
         elif self.animal_type.lower() == 'корова' or self.animal_type.lower() == 'коза':
             print(f'\nВы подоили {"".join(list(self.animal_type[:-1])) + "у"} {self.name}!')
-            return f'{self.sound}\n'
         elif self.animal_type.lower() == 'овца':
             if self.weight == self.base_weight:
                 print(f'\nВы успешно подстригли {"".join(list(self.animal_type[:-1])) + "у"} {self.name}!')
                 self.weight = self.base_weight / 2
             else:
                 print(f'\nБедняжка {self.name} уже подстрижена!')
-            return f'{self.sound}\n'
 
+        Animals.weight_count += self.weight
+        return f'{self.sound}\n'
 
 class Chicken(AnimalsAction):
     # Класс описывающий кур
@@ -207,12 +204,15 @@ class UserAction:
         elif command == '2':
             animal.interact()
 
-        UserAction.__animallook__(self)
+        if len(farm_animal[int(self.user_command)]) > 1:
+            UserAction.__animallook__(self)
 
 
     def __interactinsection__(self):
         if len(farm_animal[int(self.user_command)]) > 1:
             UserAction.__animallook__(self)
+        else:
+            UserAction.__animalaction__(self, self.anim_value0)
 
     def action(self):
         if int(self.user_command) in farm_animal.keys():
@@ -232,6 +232,9 @@ def main():
             else:
                 print(f'{key}: {val[0].animal_type} - {val[0].name}')
         print('Напечатайте "q" для выхода из программы.')
+        print(f'Вес всех животных {AnimalsAction.weight_count}кг.!')
+        print(f'Самое тяжелое животное - {Animals.max_weight_animal_type} '
+              f'{Animals.max_weight_name} весит {Animals.max_weight}кг.!')
         command = input('Выберете секцию к которой хотели бы подойти поближе: ')
         if command.lower() == 'q' or command.lower() == 'й':
             break
@@ -246,7 +249,7 @@ def main():
             command = input('Выберете секцию к которой хотели бы подойти поближе: ')
 
         UserAction(command).action()
-        print(UserAction.position)
+        print()
 
 
 main()
